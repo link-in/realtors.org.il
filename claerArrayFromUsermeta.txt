@@ -1,0 +1,7 @@
+
+UPDATE wp_users 
+SET 
+    display_name = REPLACE(display_name,
+        'Array',
+        '')
+   WHERE `display_name` LIKE '%Array%'

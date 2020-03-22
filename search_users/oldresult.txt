@@ -1,0 +1,173 @@
+<?php 
+/* Template Name: users_page */ 
+get_header();
+global $wpdb;
+	
+// $count = $wpdb->get_results( $wpdb->prepare(
+//     "SELECT * FROM $wpdb->users
+//     LEFT JOIN $wpdb->usermeta ON $wpdb->users.ID = $wpdb->usermeta.user_id
+//     WHERE meta_key = 'office_name'
+//     AND meta_value LIKE '%משרד%'"
+// , $level ));
+
+// var_dump( $count);
+
+
+var_dump($_POST);
+
+
+function push_to_arr($ids_arr,$to_push){
+    echo "<hr>";
+    var_dump($ids_arr);
+    // var_dump($to_push);
+    foreach($to_push as $r){
+        array_push($ids_arr,$r);
+        var_dump($ids_arr);
+    }
+    // exit;
+    return $ids_arr;
+    
+}
+$users_ids = array();
+if (!empty($_POST['name_'])) {
+     $query = "SELECT DISTINCT $wpdb->usermeta.user_id FROM `$wpdb->usermeta` 
+                WHERE $wpdb->usermeta.meta_value LIKE '%".$_POST['name_']."%' 
+                AND($wpdb->usermeta.meta_key = 'first_name'
+                    OR $wpdb->usermeta.meta_key = 'least_name'
+                    OR $wpdb->usermeta.meta_key = 'full_name')
+                ";
+    $result = $wpdb->get_results( $wpdb->prepare($query, $level ));
+    $users_ids = push_to_arr($users_ids,$result);
+} 
+if (!empty($_POST['district_'])) {
+    $query = "SELECT DISTINCT $wpdb->usermeta.user_id FROM `$wpdb->usermeta` 
+    WHERE $wpdb->usermeta.meta_value LIKE '%".$_POST['district_']."%' 
+    AND $wpdb->usermeta.meta_key = 'district' 
+    ";
+    $users_ids[] = $wpdb->get_results( $wpdb->prepare($query, $level ));
+} 
+if (!empty($_POST['expertise_'])) {
+    $query = "SELECT DISTINCT $wpdb->usermeta.user_id FROM `$wpdb->usermeta` 
+    WHERE $wpdb->usermeta.meta_value LIKE '%".$_POST['expertise_']."%' 
+    AND $wpdb->usermeta.meta_key = 'expertise' 
+    ";
+    $users_ids[] = $wpdb->get_results( $wpdb->prepare($query, $level ));
+
+} 
+if (!empty($_POST['license_number_'])) {
+    $query = "SELECT DISTINCT $wpdb->usermeta.user_id FROM `$wpdb->usermeta` 
+    WHERE $wpdb->usermeta.meta_value LIKE '%".$_POST['license_number_']."%' 
+    AND $wpdb->usermeta.meta_key = 'license_number' 
+    ";
+    $users_ids[] = $wpdb->get_results( $wpdb->prepare($query, $level ));
+} 
+if (!empty($_POST['telephone_'])) {
+    $query = "SELECT DISTINCT $wpdb->usermeta.user_id FROM `$wpdb->usermeta` 
+    WHERE $wpdb->usermeta.meta_value LIKE '%".$_POST['telephone_']."%' 
+    AND $wpdb->usermeta.meta_key = 'telephone' 
+    ";
+    $users_ids[] = $wpdb->get_results( $wpdb->prepare($query, $level ));
+} 
+if (!empty($_POST['office_name_'])) {
+    $query = "SELECT DISTINCT $wpdb->usermeta.user_id FROM `$wpdb->usermeta` 
+    WHERE $wpdb->usermeta.meta_value LIKE '%".$_POST['office_name_']."%' 
+    AND $wpdb->usermeta.meta_key = 'office_name' 
+    ";
+    $result = $wpdb->get_results( $wpdb->prepare($query, $level ));
+    $users_ids = push_to_arr($users_ids,$result);
+} 
+
+
+// var_dump(array_unique($users_ids));
+
+// echo $search_term = sanitize_text_field( stripslashes( 'test3333' ));
+
+$members = get_users($users_ids);
+
+
+
+?>
+<div id="container">
+    <div class="layout-content boxed"><!-- Layout Content -->
+        <div id="primary-">
+            <div class="container">
+                <div id="content" class="row">
+                    <section id="main" class="col-sm-12 col-md-12 full-width" role="main">
+                        <div class="elementor-row">
+                            <div class="elementor-element elementor-column elementor-col-30 elementor-inner-column">
+                                <div class="search-users-sidebar">
+                                   <h2>חברי הלשכה</h2>
+                                   <?php include(dirname(__FILE__)."/search_users/search_users_form.php");?>
+                                </div>
+                            </div>
+
+                            <div class="elementor-element elementor-column elementor-col-70 elementor-inner-column">
+                                <div class="search-users-main">
+                                    <div id="authorlist">
+                                        <h2>חברי הלשכה</h2>
+                                            <?php include(dirname(__FILE__)."/search_users/search_users_results.php");?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<style>
+#authorlist ul{
+list-style: none;
+width: 600px;
+margin: 0;
+padding: 0;
+}
+#authorlist li {
+margin: 0 0 5px 0;
+list-style: none;
+height: 90px;
+padding: 15px 0 15px 0;
+border-bottom: 1px solid #ececec;
+}
+ 
+#authorlist img.photo {
+width: 80px;
+height: 80px;
+float: left;
+margin: 0 15px 0 0;
+padding: 3px;
+border: 1px solid #ececec;
+}
+ 
+#authorlist div.authname {
+margin: 20px 0 0 10px;
+}
+
+section#main.row-user {
+    border: 1px solid #ddd;
+    padding: 20px;
+}
+div.content- {
+    width: 100%;
+    display: block;
+    float: right;
+    margin-bottom: 15px;
+}
+
+button#btn-resat {
+    float: left;
+}
+.search-users-main {
+    width: 100%;
+}
+</style>
+
+
+<?php
+get_footer();

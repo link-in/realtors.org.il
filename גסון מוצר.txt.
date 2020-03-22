@@ -1,0 +1,30 @@
+
+<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pric="https://www.bmby.com/WebServices/srv/v3/price_offers.php">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pric:Insert soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <Parameters xsi:type="pric:GetAllInput">
+        <Login xsi:type="xsd:string">mekarkein</Login>
+            <Password xsi:type="xsd:string">310719</Password>
+            <ProjectID xsi:type="xsd:int">8520</ProjectID>
+             <ClientID xsi:type="xsd:int">'.$userMeta['bamby_id'][0].'</ClientID>
+            <Type xsi:type="soapenc:Array" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
+               <!--You may enter ANY elements at this point-->
+            </Type>
+            <TypeString xsi:type="xsd:string"></TypeString>
+            <SetPrivate xsi:type="xsd:int"></SetPrivate>
+         </Parameters>
+         <jsonClient xsi:type="xsd:string">
+ {"project_id":{"value":'.$userMeta['district'][0].'},"user_id":{"value":50594},"bid_amount":{"value":'.$prodact_price.'},"client_id":{"value":'.$userMeta['bamby_id'][0].'},"bid_date":{"value":"2019-10-19"},"expected_to_close_up":{"value":"2019-11-19"},"invoiced_date":{"value":"2019-10-19"},"comments":{"value":"zazaz"},"status":{"value":1},
+ "products":[{"product_id":{"value":110380},"quantity":{"value":1},"price":{"value":360},"price_total":{"value":360}}
+ ]}
+
+ </jsonClient>
+      </pric:Insert>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+
+
+
+
