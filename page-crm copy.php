@@ -4,13 +4,35 @@ if (!session_id()) {
   if(isset($_GET['district'])){
     $_SESSION['district'] = $_GET['district'];
   }
+  if(isset($_GET['type'])){
+    $_SESSION['type'] = $_GET['type'];
+  }else{
+    unset($_SESSION['type']);
+  }
+
+  if(isset($_GET['catid'])){  
+    $_SESSION['catid'] = $_GET['catid'];
+  }else{
+    unset($_SESSION['catid']);
+  }
+
+  if(isset($_GET['catname'])){  
+    $_SESSION['catname'] = $_GET['catname'];
+  }else{
+    unset($_SESSION['catname']);
+  }
 
   if(isset($_GET['view'])){  
     $_SESSION['view'] = $_GET['view'];
   }
 
-  // echo "district :". $_SESSION['district']."<BR>";
-  // echo "view :". $_SESSION['view']."<BR>";
+
+  
+
+  echo "district :". $_SESSION['district']."<BR>";
+  echo "type :". $_SESSION['type']."<BR>";
+  echo "catid :". $_SESSION['catid']."<BR>";
+  echo "view :". $_SESSION['view']."<BR>";
 
 }
 
@@ -58,14 +80,16 @@ wp_enqueue_script( 'babel-js' );
                 //עמוד ניהול לאדמיניסטרטור
                 include('reactFiles/admin_dashboard.php');
               }
-              if(isset($_SESSION['view'])){
-                if($_SESSION['view'] == '1'){
-                  //הצגת המתווכים של המחוז
-                  include('reactFiles/UsersByDistrict.php');
-                }else{
-                  //הצגת מתווכים שרכשו את המוצר/כנס
-                  include('reactFiles/catagory_pro_list.php');
-                }
+
+              if($_SESSION['type'] == 'orders'){
+                //רשימת המוצרים להצגת הרכישות לכנסים
+                include('reactFiles/prodacts_list.php');
+              }elseif(isset($_SESSION['catid'])){
+                //הצגת מתווכים שרכשו את המוצר/כנס
+                include('reactFiles/catagory_pro_list.php');
+              }else{
+                //הצגת המתווכים של המחוז
+                include('reactFiles/UsersByDistrict.php');
               } 
             ?>
           </div>

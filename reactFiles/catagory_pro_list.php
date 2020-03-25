@@ -1,5 +1,13 @@
-<h3>רשימת מתווכים</h3>
-
+<?php
+$product = wc_get_product( $_SESSION['view'] );
+?>
+<div class="h2-box">
+    <h2>
+        רכישות:
+        <?=$product->name ?>
+    </h2>
+</div>
+<div class="result-number"></div>
 
 <table
 id="table"
@@ -28,7 +36,14 @@ data-show-export="true"
         // jQuery('#table').bootstrapTable()
 
         var jquerytable = jQuery('#table')
-        jquerytable.bootstrapTable('destroy').bootstrapTable({
+        jquerytable.bootstrapTable({
+            formatNoMatches: function () {
+                return 'לא נמצאו תוצאות';
+            },
+            formatLoadingMessage: function() {
+                return '<b>בטעינה נא להמתין...</b>';
+            }
+        }).bootstrapTable({
             exportDataType: 'all',
             exportTypes: ['csv', 'excel', 'pdf']
         });
@@ -43,9 +58,10 @@ data-show-export="true"
             headers: {
                 'X-WP-Nonce': wpReactLogin.nonceApi
             },
-            data: {'prodcatid':'<?=$_GET['catid']?>','district':'<?=$district?>'},
+            data: {'prodcatid':'<?=$_SESSION['view']?>','district':'<?=$_SESSION['district']?>'},
             contentType: 'application/json; charset=utf-8',
             success: function (result) {
+                jQuery('.result-number').text('מספר התוצאות: '+result.length)
                 params.success(result)
                 // console.log(result);
             

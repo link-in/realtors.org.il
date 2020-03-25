@@ -1,5 +1,5 @@
 <?php
-echo "<h3>רשימת מוצרים</h3>";
+echo "<h2>רשימת מוצרים/כנסים</h2>";
 $orderby = 'name';
 $order = 'asc';
 $hide_empty = false ;
@@ -24,7 +24,7 @@ if( !empty($product_categories) ){
         ));
         echo "<ul>";
         foreach ($products as $cat) {
-            echo "<li><a href='?catid={$cat->get_id()}'>{$cat->name}</li>";
+            echo "<li><a href='?catid={$cat->get_id()}&catname={$cat->name}'>{$cat->name}</li>";
         }
         echo "</ul>";
        

@@ -1,4 +1,7 @@
-
+<div class="h2-box">
+  <h2>חברי מחוז : <?=$_SESSION['district']?></h2>
+</div>
+<div class="result-number"></div>
 <table
   id="table"
   data-ajax="ajaxRequestUsers"
@@ -29,7 +32,14 @@
         // jQuery('#table').bootstrapTable()
 
         var jquerytable = jQuery('#table')
-        jquerytable.bootstrapTable('destroy').bootstrapTable({
+        jquerytable.bootstrapTable({
+            formatNoMatches: function () {
+                return 'לא נמצאו תוצאות';
+            },
+            formatLoadingMessage: function() {
+                return '<b>בטעינה נא להמתין...</b>';
+            }
+        }).bootstrapTable({
             exportDataType: 'all',
             exportTypes: ['csv', 'excel', 'pdf']
         });
@@ -57,11 +67,11 @@
           headers: {
               'X-WP-Nonce': wpReactLogin.nonceApi
           },
-          data: {'district': '<?=$district?>'},
+          data: {'district': '<?=$_SESSION['district']?>'},
           contentType: 'application/json; charset=utf-8',
           success: function (result) {
           params.success(result)
-          
+          jQuery('.result-number').text('מספר התוצאות: '+result.length)
           // CallBack(result);
           },
           error: function (error) {
