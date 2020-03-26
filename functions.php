@@ -896,7 +896,7 @@ function wpb_welcome_shortcode() {
         }
     }
 } 
-    // register shortcode
+// register shortcode
 add_shortcode('welcome_shortcode', 'wpb_welcome_shortcode'); 
 
 remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 ); 
@@ -967,162 +967,21 @@ function react_login_user() {
 // }
 
 
-/** Users_by_district **/
-register_rest_route(
-	'captaincore/v1', '/customers/', array(
-		'methods'       => 'GET',
-		'callback'      => 'district_users_func',
-		'show_in_index' => false
-	)
-);
 
-function district_users_func( $request ) {
+
+
+
+
+add_action( 'wp_ajax_updateuser', 'st_handle_updateuser' );
+add_action( 'wp_ajax_nopriv_updateuser', 'st_handle_updateuser' );
     
-    $district = $request->get_param('district');
-    global $wpdb;
-    $q="SELECT user_id FROM `wp_usermeta` WHERE meta_key='district' AND meta_value='{$district}'";
-    $result = $wpdb->get_results($q);
-    $allUsers = array();
-    $counter = 0;
-    $rowNumber=1;
-    foreach($result as $user_id){
-        $userMeta = get_user_meta ( $user_id->user_id);
-        // Kint::dump($userMeta);
-        $allUsers[$counter]['rowNumber'] = $rowNumber; 
-        $allUsers[$counter]['first_name'] = $userMeta['first_name'][0]; 
-        $allUsers[$counter]['last_name'] = $userMeta['last_name'][0]; 
-        $allUsers[$counter]['phone'] = $userMeta['phone'][0]; 
-        $allUsers[$counter]['district'] = $userMeta['district'][0]; 
-        $allUsers[$counter]['member_purchase_date'] = $userMeta['member_purchase_date'][0]; 
-        $allUsers[$counter]['member_expiry_date'] = $userMeta['member_expiry_date'][0]; 
-        $allUsers[$counter]['district'] = $userMeta['district'][0]; 
-        $user = get_user_by ( 'ID',$user_id->user_id);
-        $allUsers[$counter]['user_email'] = $user->data->user_email; 
-        $allUsers[$counter]['ID'] = $user_id->user_id; 
-        if($user->roles[0] == 'author'){
-            $allUsers[$counter]['roles'] = 'חבר לשכה שנתי'; 
-        }elseif( $user->roles[0] == 'customer'){
-            $allUsers[$counter]['roles'] = 'רשום באתר -לא חבר'; 
-        }elseif( $user->roles[0] == 'monthly_subscriptionnot_approve'){
-            $allUsers[$counter]['roles'] = 'חבר לשכה חדש - לא מאושר'; 
-        }elseif( $user->roles[0] == 'new_monthly_subscriptionnot'){
-            $allUsers[$counter]['roles'] = 'חבר לשכה חתום חודשי'; 
-        }
-
-        $counter++;
-        $rowNumber++;
-    }
-    header('Content-type: application/json');
-    echo json_encode($allUsers);
-    // Kint::dump($allUsers);
-    exit;
+function st_handle_updateuser(){
+    exit('sdfdsdfs');
+    if( $_POST['action'] == 'updateuser_action' ) {
+         die(1);
+    }    
 
 }
-
-register_rest_route(
-	'captaincore/v1', '/user_order/', array(
-		'methods'       => 'GET',
-		'callback'      => 'get_orders_by_user_func',
-		'show_in_index' => false
-	)
-);
-
-function get_orders_by_user_func( $request ) {
-    
-    $userID = $request->get_param('userID');
-    global $wpdb;
-    $q="SELECT post_id FROM `wp_postmeta` WHERE `meta_key` = '_customer_user' AND `meta_value` = '{$userID}'";
-    $result = $wpdb->get_results($q);
-    $allUsers = array();
-    $counter = 0;
-    $rowNumber=1;
-    $orders_arr = array();
-    foreach($result as $item){
-        $order = wc_get_order( $item->post_id );
-
-        // $order_data = $order->get_data();
-        $items = $order->get_items();
-
-        foreach ( $items as $item ) {
-            $orders_arr[$counter]['product_name'] = $item->get_name();
-            $orders_arr[$counter]['product_id'] = $item->get_product_id();
-        }
-        // var_dump($order_items);
-        $counter++;
-        $rowNumber++;
-    }
-    header('Content-type: application/json');
-    echo json_encode($orders_arr);
-
-    exit;
-
-}
-/** END Users_by_district **/
-
-/** get_purchased_users_by_product **/
-register_rest_route(
-	'captaincore/v1', '/purchased_users/', array(
-		'methods'       => 'GET',
-		'callback'      => 'get_purchased_users_func',
-		'show_in_index' => false
-	)
-);
-
-function get_purchased_users_func( $request ) {
-    global $wpdb;
-    $product_id = $request->get_param('prodcatid');
-    $district = $request->get_param('district');
-    $statuses = array_map( 'esc_sql', wc_get_is_paid_statuses() );
-    $customer = $wpdb->get_col("
-       SELECT DISTINCT pm.meta_value FROM {$wpdb->posts} AS p
-       INNER JOIN {$wpdb->postmeta} AS pm ON p.ID = pm.post_id
-       INNER JOIN {$wpdb->prefix}woocommerce_order_items AS i ON p.ID = i.order_id
-       INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS im ON i.order_item_id = im.order_item_id
-       WHERE p.post_status IN ( 'wc-" . implode( "','wc-", $statuses ) . "' )
-       AND pm.meta_key IN ( '_customer_user' )
-       AND im.meta_key IN ( '_product_id', '_variation_id' )
-       AND im.meta_value = $product_id
-    ");
-
-    $allUsers = array();
-    $counter = 0;
-    $rowNumber=1;
-    foreach($customer as $user_id){
-        $userMeta = get_user_meta ( $user_id);
-        if($userMeta['district'][0] == $district){
-            // Kint::dump($userMeta);
-            $allUsers[$counter]['rowNumber'] = $rowNumber; 
-            $allUsers[$counter]['first_name'] = $userMeta['first_name'][0]; 
-            $allUsers[$counter]['last_name'] = $userMeta['last_name'][0]; 
-            $allUsers[$counter]['phone'] = $userMeta['phone'][0]; 
-            $allUsers[$counter]['district'] = $userMeta['district'][0]; 
-            $allUsers[$counter]['member_purchase_date'] = $userMeta['member_purchase_date'][0]; 
-            $allUsers[$counter]['member_expiry_date'] = $userMeta['member_expiry_date'][0]; 
-            $allUsers[$counter]['district'] = $userMeta['district'][0]; 
-            $user = get_user_by ( 'ID',$user_id);
-            $allUsers[$counter]['user_email'] = $user->data->user_email; 
-            $allUsers[$counter]['ID'] = $user_id; 
-            if($user->roles[0] == 'author'){
-                $allUsers[$counter]['roles'] = 'חבר לשכה שנתי'; 
-            }elseif( $user->roles[0] == 'customer'){
-                $allUsers[$counter]['roles'] = 'רשום באתר -לא חבר'; 
-            }elseif( $user->roles[0] == 'monthly_subscriptionnot_approve'){
-                $allUsers[$counter]['roles'] = 'חבר לשכה חדש - לא מאושר'; 
-            }elseif( $user->roles[0] == 'new_monthly_subscriptionnot'){
-                $allUsers[$counter]['roles'] = 'חבר לשכה חתום חודשי'; 
-            }
-
-            $counter++;
-            $rowNumber++;
-        }
-    }
-    header('Content-type: application/json');
-    echo json_encode($allUsers);
-    exit;
-
-}
-/** END get_purchased_users_by_product **/
-
 
 
 
