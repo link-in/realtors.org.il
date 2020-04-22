@@ -145,12 +145,6 @@ if(!is_user_logged_in()){
         </span>
       </p>
 
-
-      
-
-
-
-
       <p class="form-row form-row-wide thwcfd-field-wrapper thwcfd-field-text validate-required" id="license_number_field" data-priority="100">
         <span class="woocommerce-checkbox-wrapper">
           <input type="checkbox" class="checkbox-text " name="legal_approval_3" id="legal_approval_3" placeholder="" value="true" checked>
@@ -180,197 +174,247 @@ if(!is_user_logged_in()){
  
  jQuery(document).ready(function(){
 
-  function ajaxStart(){
-      jQuery('#ajax-img').attr("src","<?=get_template_directory_uri()?>/assets/images/demo_wait.gif");
-	  jQuery('.member-box').css('opacity', '0.3');
-      jQuery('.registration-title').css('opacity', '0.3');
-      jQuery("#wait").css('visibility', 'visible');
-  };
+    function ajaxStart(){
+        jQuery('#ajax-img').attr("src","<?=get_template_directory_uri()?>/assets/images/demo_wait.gif");
+      jQuery('.member-box').css('opacity', '0.3');
+        jQuery('.registration-title').css('opacity', '0.3');
+        jQuery("#wait").css('visibility', 'visible');
+    };
 
-  jQuery(document).ajaxComplete(function(){
-    setTimeout(function(){
-      jQuery("#wait").css('visibility', 'hidden');
-  },3000);
-  });
-  
+    jQuery(document).ajaxComplete(function(){
+      setTimeout(function(){
+        jQuery("#wait").css('visibility', 'hidden');
+    },3000);
+    });
+    
+    function isValid(selctor,val,valid){
 
-  function isValid(selctor,val,valid){
-
-    if(val == '' || val == 'נא לבחור מחוז' || val == 'נא לבחור תחום'){
-      // alert(selctor)
-      jQuery("#st-"+selctor+"").css({
-        'background-color': '#FFFFCC',
-        'border-color': '#a94442'
-      });
-      jQuery('.'+selctor+'-box .valid-text').show();
-      return false;
-    }else{
-      jQuery("#st-"+selctor+"").css({
-        'background-color': '#ffffff',
-        'border-color': '#cccccc'
-      });
-      jQuery('.'+selctor+'-box .valid-text').hide();
-
-      if(valid == false){
+      if(val == '' || val == 'נא לבחור מחוז' || val == 'נא לבחור תחום'){
+        // alert(selctor)
+        jQuery("#st-"+selctor+"").css({
+          'background-color': '#FFFFCC',
+          'border-color': '#a94442'
+        });
+        jQuery('.'+selctor+'-box .valid-text').show();
         return false;
       }else{
-        return true;
+        jQuery("#st-"+selctor+"").css({
+          'background-color': '#ffffff',
+          'border-color': '#cccccc'
+        });
+        jQuery('.'+selctor+'-box .valid-text').hide();
+
+        if(valid == false){
+          return false;
+        }else{
+          return true;
+        }
       }
     }
-  }
 
-  jQuery('#isMember').on('click',function(){
-    var  valid = true;
-    var firname = jQuery("#st-fname").val();
-    valid = isValid('fname',firname,valid);
+    jQuery('#isMember').on('click',function(){
+      var  valid = true;
+      var firname = jQuery("#st-fname").val();
+      valid = isValid('fname',firname,valid);
 
-    var lasname = jQuery("#st-lname").val();
-    valid = isValid('lname',lasname,valid);
+      var lasname = jQuery("#st-lname").val();
+      valid = isValid('lname',lasname,valid);
 
-    var licenseNumber = jQuery("#st-licenseNumber").val();
-    valid = isValid('licenseNumber',licenseNumber,valid);
-    jQuery('#ajax-text').text('אנו בודקים את המידע ... סבלנות').css({"color":"#5e5e5e","font-size":"16px"});
-    if(valid == true){  
-	  ajaxStart();	
-      var data = {
-        action: 'isMember_action',
-        firname: firname,
-        lasname: lasname,
-        licenseNumber: licenseNumber
-        
-      };
-
-      jQuery.post( ajaxurl, data, function(res){ // ajaxurl must be defined previously
-
-        var obj = JSON.parse(res);
-        //console.log(obj)
-        if(obj.valid == 'true'){
-
-          jQuery('#ajax-img').attr("src","<?=get_template_directory_uri()?>/assets/images/v.jpg");
-          jQuery('#ajax-text').text('ברוכים הבאים .. נמשיך בתהליך ההרשמה');
-          jQuery('#billing_first_name').val(jQuery("#st-fname").val());
-          jQuery('#billing_last_name').val(jQuery("#st-lname").val());
-          jQuery('#license_number').val(jQuery("#st-licenseNumber").val());
+      var licenseNumber = jQuery("#st-licenseNumber").val();
+      valid = isValid('licenseNumber',licenseNumber,valid);
+      jQuery('#ajax-text').text('אנו בודקים את המידע ... סבלנות').css({"color":"#5e5e5e","font-size":"16px"});
+      if(valid == true){  
+      ajaxStart();	
+        var data = {
+          action: 'isMember_action',
+          firname: firname,
+          lasname: lasname,
+          licenseNumber: licenseNumber
           
-          jQuery('#isMemberStatus').val('true');
-          jQuery('.ismember-error').css("visibility","hidden");
-          setTimeout(function(){
-                jQuery('.member-box').css('opacity', '0.3');
-                jQuery('.registration-title').css('opacity', '1');
-          },3000);
-
-
-          setTimeout(function(){    
-            jQuery('html, body').animate({
-              scrollTop: jQuery(".woocommerce-billing-fields").offset().top
-            }, 1000); 
-          },4500);
-
-        }else{
-          jQuery('#ajax-img').hide();
-          jQuery('#ajax-text').text('לא נמצא, נא לבדוק שכל הפרטים נכונים').css({"color":"red","font-size":"16px"});
-          setTimeout(() => {
-            jQuery('.member-box').css('opacity', '1');  
-            jQuery('.registration-title').css('opacity', '1');
-          }, 3000);
-          
-        }
-      });
-      // jQuery("#error-message").html(res);
-    }
-  });
- 
-
-  jQuery('#register-me').on('click',function(){
-    var valid = true;
-    var action = 'register_action';
-      
-    var username = jQuery("#st-username").val();
-    
-    if(username == ''){
-      jQuery("#st-username").css("border-color", "#a94442!important");
-      valid = false;
-    }
-
-    var mail_id = jQuery("#st-email").val();
-    valid = isValid('email',mail_id,valid);
-
-    var firname = jQuery("#st-fname").val();
-    var lasname = jQuery("#st-lname").val();
-    
-    var phone = jQuery("#st-phone").val();
-    valid = isValid('phone',phone,valid);
-
-    var validID = jQuery("#validID").val();
-    var licenseNumber = jQuery("#st-licenseNumber").val();
-    valid = isValid('licenseNumber',licenseNumber,valid);
-
-    var office_name = jQuery("#st-office_name").val();
-    valid = isValid('office_name',office_name,valid);
-
-    var district = jQuery("#st-district").val();
-    valid = isValid('district',district,valid);
-
-    var expertise = jQuery("#st-expertise").val();
-    valid = isValid('expertise',expertise,valid);
-
-    if(valid == true){
-        var ajaxdata = {
-          
-        action: 'register_action',
-        username: username,
-        mail_id: mail_id,
-        firname: firname,
-        lasname: lasname,
-        phone: phone,
-        validID: validID,
-        licenseNumber: licenseNumber,
-        office_name: office_name,
-        district: district,
-        expertise: expertise
         };
-        // debugger;
-        //console.log(ajaxdata);
-        jQuery('#ajax-text').text('המידע נשלח ... נא להמתין');
-        jQuery.post( ajaxurl, ajaxdata, function(res){ 
-          console.log('obj',obj);
+
+        jQuery.post( ajaxurl, data, function(res){ // ajaxurl must be defined previously
+
           var obj = JSON.parse(res);
-          if(obj.user_registered == 'true'){
-            jQuery("#wait").css('visibility', 'hidden');
-            jQuery('.r-form').hide();
-            jQuery('.f_name').text(jQuery("#st-fname").val());
-            jQuery('.user_registered').show();
+          //console.log(obj)
+          if(obj.valid == 'true'){
+
+            jQuery('#ajax-img').attr("src","<?=get_template_directory_uri()?>/assets/images/v.jpg");
+            jQuery('#ajax-text').text('ברוכים הבאים .. נמשיך בתהליך ההרשמה');
+            jQuery('#billing_first_name').val(jQuery("#st-fname").val());
+            jQuery('#billing_last_name').val(jQuery("#st-lname").val());
+            jQuery('#license_number').val(jQuery("#st-licenseNumber").val());
+            
+            jQuery('#isMemberStatus').val('true');
+            jQuery('.ismember-error').css("visibility","hidden");
+            setTimeout(function(){
+                  jQuery('.member-box').css('opacity', '0.3');
+                  jQuery('.registration-title').css('opacity', '1');
+            },3000);
+
+
+            setTimeout(function(){    
+              jQuery('html, body').animate({
+                scrollTop: jQuery(".woocommerce-billing-fields").offset().top
+              }, 1000); 
+            },4500);
+
           }else{
-            jQuery("#error-message").append(obj.error);
+            jQuery('#ajax-img').hide();
+            jQuery('#ajax-text').text('לא נמצא, נא לבדוק שכל הפרטים נכונים').css({"color":"red","font-size":"16px"});
+            setTimeout(() => {
+              jQuery('.member-box').css('opacity', '1');  
+              jQuery('.registration-title').css('opacity', '1');
+            }, 3000);
+            
           }
-          
         });
+        // jQuery("#error-message").html(res);
+      }
+    });
+  
+    jQuery('#register-me').on('click',function(){
+      var valid = true;
+      var action = 'register_action';
+        
+      var username = jQuery("#st-username").val();
+      
+      if(username == ''){
+        jQuery("#st-username").css("border-color", "#a94442!important");
+        valid = false;
+      }
+
+      var mail_id = jQuery("#st-email").val();
+      valid = isValid('email',mail_id,valid);
+
+      var firname = jQuery("#st-fname").val();
+      var lasname = jQuery("#st-lname").val();
+      
+      var phone = jQuery("#st-phone").val();
+      valid = isValid('phone',phone,valid);
+
+      var validID = jQuery("#validID").val();
+      var licenseNumber = jQuery("#st-licenseNumber").val();
+      valid = isValid('licenseNumber',licenseNumber,valid);
+
+      var office_name = jQuery("#st-office_name").val();
+      valid = isValid('office_name',office_name,valid);
+
+      var district = jQuery("#st-district").val();
+      valid = isValid('district',district,valid);
+
+      var expertise = jQuery("#st-expertise").val();
+      valid = isValid('expertise',expertise,valid);
+
+      if(valid == true){
+          var ajaxdata = {
+            
+          action: 'register_action',
+          username: username,
+          mail_id: mail_id,
+          firname: firname,
+          lasname: lasname,
+          phone: phone,
+          validID: validID,
+          licenseNumber: licenseNumber,
+          office_name: office_name,
+          district: district,
+          expertise: expertise
+          };
+          // debugger;
+          //console.log(ajaxdata);
+          jQuery('#ajax-text').text('המידע נשלח ... נא להמתין');
+          jQuery.post( ajaxurl, ajaxdata, function(res){ 
+            console.log('obj',obj);
+            var obj = JSON.parse(res);
+            if(obj.user_registered == 'true'){
+              jQuery("#wait").css('visibility', 'hidden');
+              jQuery('.r-form').hide();
+              jQuery('.f_name').text(jQuery("#st-fname").val());
+              jQuery('.user_registered').show();
+            }else{
+              jQuery("#error-message").append(obj.error);
+            }
+            
+          });
+      }
+    });
+  
+    jQuery( 'form.checkout' ).on( 'checkout_place_order', function() {
+      var $payment_method = jQuery( 'form.checkout input[name="payment_method"]:checked' ).val();
+      if (  jQuery('#isMemberStatus').val() == 'false' ) {
+          // prevent the submit AJAX call
+      jQuery('.ismember-error').css("visibility","visible");
+      jQuery('html, body').animate({
+        scrollTop: jQuery(".member-box-title").offset().top
+      }, 1000)       
+        return false;
+      }else{
+      jQuery('.ismember-error').css("visibility","hidden");
     }
-  });
- 
 
-
-  jQuery( 'form.checkout' ).on( 'checkout_place_order', function() {
-    var $payment_method = jQuery( 'form.checkout input[name="payment_method"]:checked' ).val();
-    if (  jQuery('#isMemberStatus').val() == 'false' ) {
-        // prevent the submit AJAX call
-		jQuery('.ismember-error').css("visibility","visible");
-		jQuery('html, body').animate({
-			scrollTop: jQuery(".member-box-title").offset().top
-		}, 1000)       
-	    return false;
-    }else{
-		jQuery('.ismember-error').css("visibility","hidden");
-	}
-    // allow the submit AJAX call
     return true;
  });
+
+ jQuery('#district').change(function(){
+      if(jQuery(this).val() == 'מחוז גוש דן'){ 
+        jQuery('p#sub_district_1_field').css("display", "block");
+      }
+      if(jQuery(this).val() == 'מחוז אילת'){ 
+        jQuery('p#sub_district_2_field').css("display", "block");
+      }
+      // if(jQuery(this).val() == 'מחוז אילת'){ 
+      //   jQuery('p#sub_district_2_field').css("display", "block");
+      // }
+
+      // if(jQuery(this).val() == 'מחוז השפלה'){ 
+      //   jQuery('p#sub_district_3_field').css("display", "block");
+      // }
+
+      // if(jQuery(this).val() == 'מחוז השרון'){ 
+      //   jQuery('p#sub_district_4_field').css("display", "block");
+      // }
+
+      // if(jQuery(this).val() == 'מחוז חיפה והגליל המערבי'){ 
+      //   jQuery('p#sub_district_5_field').css("display", "block");
+      // }
+
+      // if(jQuery(this).val() == 'מחוז חיפה והגליל המערבי'){ 
+      //   jQuery('p#sub_district_5_field').css("display", "block");
+      // }
+
+      // if(jQuery(this).val() == 'מחוז פתח תקוה ראש העין והשומרון'){ 
+      //   jQuery('p#sub_district_7_field').css("display", "block");
+      // }
+      
+  });
 
 });//documentready
 
 </script>
 
 <style>
+
+  #sub_district_1_field,
+  #sub_district_2_field,
+  #sub_district_3_field,
+  #sub_district_4_field,
+  #sub_district_5_field,
+  #sub_district_6_field,
+  #sub_district_7_field{
+    display:none;
+  }
+
+  span.optional {
+      display: none;
+  }
+  .form-row-sub-district {
+      float: right;
+      margin-right: 53%!important;
+  }
+  p#sub_district_1_field {
+      display: none;
+  }
   input#isMember,input#register-me {
     background: #337ab7;
     color: #fff;

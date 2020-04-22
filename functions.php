@@ -341,7 +341,7 @@ function acf_get_field_key( $field_name, $post_id ) {
   Chainge user role in wp after user buy member ticket 
 *****************************************************/ 
 
-include('bmby.php');
+// include('bmby.php');
 
 /***************************** 
  Email html header chainge
@@ -354,13 +354,10 @@ add_filter( 'wp_mail_content_type','wpse27856_set_content_type' );
 /***************************** 
  users_status_cronjob
 *****************************/ 
-//add_action( 'users_status_cronjob', 'users_status_cronjob_function' );
+add_action( 'users_status_cronjob', 'users_status_cronjob_function' );
 function users_status_cronjob_function() {
-
     global $wpdb;
-
     //$query="SELECT user_id FROM {$wpdb->prefix}usermeta WHERE `meta_key` = 'status' AND meta_value ='חבר לשכה'";
-    
     $query = "SELECT u.ID, m2.meta_value as member_purchase_date, m1.meta_value as capabilities
     FROM wp_users u
     INNER JOIN wp_usermeta m1 ON u.ID = m1.user_id AND m1.meta_key = 'wp_capabilities'
@@ -373,46 +370,65 @@ function users_status_cronjob_function() {
     $today=date('Y-m-d');
     $datetime2 = new DateTime($today);
     foreach($results as $t){
-        if(user_can( $t->ID, 'manage_options' )){
-            continue;
-        }
+        $role_name = unserialize($t->capabilities);
+        // var_dump(key($role_name));
+        // if( key($role_name) == 'new_monthly_subscriptionnot' || key($role_name) == 'admin' || key($role_name) == 'monthly_subscriptionnot_approve' || key($role_name) == 'expired_membership' ){
+        //      continue;
+        // }   
+        if( key($role_name) != 'author'){
+             continue;
+        }   
+        // var_dump(unserialize($t->capabilities));
+        // exit;
         $datetime1 = new DateTime($t->member_purchase_date);
         $interval = $datetime1->diff($datetime2);
         // var_dump($interval->days);
-
         if($interval->days <= 1){
-            echo $t->ID."user: ";
-            echo "1 days";
-            echo "<BR>";
+            // echo $t->ID."user: ";
+            // echo "1 days";
+            // echo "<BR>";
             sendEmail($t->ID,$interval->days);
         }elseif($interval->days <= 14){
-            echo $t->ID."user: ";
-            echo "14 days";
-            echo "<BR>";
+            // echo $t->ID."user: ";
+            // echo "14 days";
+            // echo "<BR>";
             sendEmail($t->ID,$interval->days);
         }elseif($interval->days <= 30){
-            echo $t->ID."user: ";
-            echo "30 days";
-            echo "<BR>";
+            // echo $t->ID."user: ";
+            // echo "30 days";
+            // echo "<BR>";
             sendEmail($t->ID,$interval->days);
         }elseif($interval->days >= 360){
             echo $t->ID."user: ";
-            echo "360 days";
-            echo "<BR>";
-            //update_field( 'field_5d7a0d56f000e', 'מסרב', 'user_'.$t->ID );
+            // echo "360 days";
+            // echo key($role_name);
+            // echo " expired_membership<BR>";
+            sendEmail($t->ID,0);
             $user_id = wp_update_user(array("ID"=>$t->ID,"role"=>"expired_membership"));
+            
         }else{
-            echo "active member<BR>";
-            //update_field( 'field_5d7a0d56f000e', 'חבר לשכה', 'user_'.$t->ID );
-            $user_id = wp_update_user(array("ID"=>$t->ID,"role"=>"author"));
+            
+        //     if( key($role_name) == 'new_monthly_subscriptionnot'){
+        //         update_field('member_expiry_date', '', 'user_'.$t->ID);
+        //         update_field('member_purchase_date', '', 'user_'.$t->ID);
+        //    }
+
         }
     }
     exit;
 }
 
+// users_status_cronjob_function();
+// exit;
+
 function sendEmail($user_id,$days){
     $user = get_user_by('ID',$user_id);
-    echo $email_body = '
+    // var_dump($user);
+    if($days == 0){
+        echo $email_body ='משתמש : '.$user->user_email.' הפך למנוי לא בתוקף';
+        //$r=wp_mail(array('info@link-in.co.il','amir@mayamedia.co.il'), "חידוש מנוי - לשכת מתווכי הנדלן", $email_body);
+    }else{
+        echo $email_body = '
     
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
         <html lang="en">
@@ -597,10 +613,12 @@ function sendEmail($user_id,$days){
         </body>
         </html>
     ';
-    // $r=wp_mail("zurbracha@gmail.com", "חידוש מנוי - לשכת מתווכי הנדלן", $email_body);
+    }
+    echo "<br>";
+    $r=wp_mail(array('info@link-in.co.il','amir@mayamedia.co.il'), "חידוש מנוי - לשכת מתווכי הנדלן", $email_body);
     // $r=wp_mail($user->user_email, "חידוש מנוי - לשכת מתווכי הנדלן", $email_body);
     // var_dump($r);
-    // exit;
+
     
 }
 
@@ -833,6 +851,71 @@ function aelia_get_cart_contents() {
    
   // Step 3 - Explain customers why they can't add some products to the cart
   add_filter('woocommerce_get_price_html', function($price_html, $product) {
+    
+    $product_district = get_field('district',$product->get_id());
+    $product_subDistrict = get_field(get_subDistrict_by_district($product_district),$product->get_id());
+    if(!empty($product_subDistrict)){
+        $product_district = $product_subDistrict;
+    }
+
+    
+    /*************************************************************** 
+    Blocking add product  to cart if user not in district
+    ****************************************************************/ 
+    if(!empty($product_district) && $product_district != '0'){
+
+
+
+
+        $user_district = get_user_meta(get_current_user_id(),'district')[0];
+        $user_subDistrict = get_user_meta(get_current_user_id(),get_subDistrict_by_district($user_district))[0];
+
+
+        if(is_array($product_district) || $product_subDistrict){
+            $on = false;
+            foreach ($product_district as $district) {
+                if($district == $user_district){
+                    $on = true;
+                }
+                $to_buy = $user_district;
+            }
+            foreach ($product_subDistrict as $subDistrict) {
+                if($subDistrict == $user_subDistrict){
+                    $on = true;
+                }
+                $to_buy = $user_subDistrict;
+            }
+            if($on == false){
+                $price_html .= '<ul class="woocommerce-error" role="alert"><li>
+                מוצר זה לא ניתן לרכישה לחברי מחוז : '.$to_buy.'
+                </li></ul>';
+                return $price_html;
+            }
+
+        }else{
+
+            if(!empty($user_subDistrict)){
+                $user_district = $user_subDistrict;
+            }
+    
+            if($product_district == $user_district){
+                return;
+            }else{
+                $price_html .= '<ul class="woocommerce-error" role="alert"><li>
+                מוצר זה ניתן לרכישה רק לחברי : '.$product_district.'
+                </li></ul>';
+                return $price_html;
+            }
+            
+        }
+
+
+
+
+        
+    }
+
+    
     if(!$product->is_purchasable() && is_product()) {
         $price_html .= '<ul class="woocommerce-error" role="alert"><li>לא ניתן לרכוש מינוי שנתי עם מוצר נוסף, ראשית יש לרכוש מינוי שנתי
         או לנקות את עגלת הקניות
@@ -881,8 +964,6 @@ function my_custom_fonts() {
 }
 
 
-
-
 function wpb_welcome_shortcode() { 
  
     if ( is_user_logged_in() ) {
@@ -899,88 +980,73 @@ function wpb_welcome_shortcode() {
 // register shortcode
 add_shortcode('welcome_shortcode', 'wpb_welcome_shortcode'); 
 
+function fun_crm_shortcode() { 
+    if(get_field('crm', 'user_'.get_current_user_id())){ ?>
+
+    <div class="elementor-element elementor-element-18d621f elementor-button-info elementor-widget elementor-widget-button animated fadeIn" data-id="18d621f" data-element_type="widget" data-settings="{&quot;_animation&quot;:&quot;fadeIn&quot;}" data-widget_type="button.default">
+        <div class="elementor-widget-container">
+            <div class="elementor-button-wrapper" style=" margin-right: 14px;">
+                <a href="https://realtors.org.il/crm" class="elementor-button-link elementor-button elementor-size-xs" role="button">
+                    <span class="elementor-button-content-wrapper">
+                            <span class="elementor-button-text">כניסה למערכת ניהול מתווכים</span>
+                    </span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <?php }
+    
+} 
+
+// register shortcode
+add_shortcode('crm_shortcode', 'fun_crm_shortcode'); 
 remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 ); 
 
 
-add_action( 'wp_ajax_nopriv_react_check_if_logged', 'react_check_if_logged' );
-add_action( 'wp_ajax_react_check_if_logged', 'react_check_if_logged' );
-function react_check_if_logged(){
-	$id = get_current_user_id();
-	if( $id > 0 ){
-		echo  json_encode(
-			array(
-				'success' => 1,
-				'user' => new WP_User($id)
-			));
-	} else {
-		echo  json_encode(
-			array(
-				'success' => 0
-			));
-	}
+//שולח משתמש חדש למערכת InforUMobile
+add_action( 'woocommerce_order_status_processing', 'so_payment_complete' ,1,10);
+function so_payment_complete( $order_id ){
+    $order = wc_get_order( $order_id );
+    $user = $order->get_user();
+    if( $order ){
+        foreach ($order->get_items() as $item_id => $item_data) {
+            $product = $item_data->get_product();
+            if($product->get_id() == 3930){
+                $url = "https://capi.inforu.co.il/api/v2/Contact/CreateOrUpdateContacts";
+               //להוסיף תנאי לפי מחוז ותוקן
+                // $username = "realtorsco";
+                // $token = "zxcpjaxui9n03ulukrduywol5";
+                $username = "district1";
+                $token = "h0xf2bhnkuroednp4wh7tc734";
+                $request = array();
+                $request["Data"] = array();
+                $request["Data"]["List"] = array();
+                $request["Data"]["List"][] = array(
+                "FirstName"=>"David",
+                "LastName"=>"Cohen",
+                "Phone"=>"0589995551",
+                "Email"=>"Cohen@test.com",
+                "AddToGroupName"=>"",
+                );
+                $json = json_encode($request);
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json; charset=utf-8',
+                ));
+                curl_setopt($ch, CURLOPT_USERPWD, $username.":".$token);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $json );
+                $response = curl_exec($ch);
+                curl_close ($ch);
+                $result = json_decode($response,true);
+                print_r($result);
 
-	wp_die();
-}
-
-add_action( 'wp_ajax_nopriv_react_login_user', 'react_login_user' );
-add_action( 'wp_ajax_react_login_user', 'react_login_user' );
-function react_login_user() {
-	global $wpdb;
-	check_ajax_referer( 'wp_react_login', '_wpnonce' );
-
-	$username = $_POST['username'];
-	$password = $_POST['password'];
-
-	$auth = wp_authenticate( $username, $password );
-	if( is_wp_error( $auth )) {
-		echo  json_encode(
-			array(
-				'success' => 0,
-				'message' => $auth->get_error_message()
-			));
-	} else {
-		wp_set_auth_cookie( $auth->ID );
-		echo  json_encode(
-			array(
-				'success' => 1,
-				'user' => $auth
-			));
-	}
-	
-
-	wp_die();
-}
-
-/** Users_by_district **/
-// add_action( 'wp_ajax_nopriv_users_by_district', 'users_by_district' );
-// add_action( 'wp_ajax_users_by_district', 'users_by_district' );
-
-// function users_by_district() {
-//     global $wpdb;
-// 	check_ajax_referer( 'wp_react_login', '_wpnonce' );
-//     $users = get_users( array( 'fields' => array( 'ID' ) ) );
-//     foreach($users as $user_id){
-//         var_dump(get_user_meta ( $user_id->ID));
-//     }
-
-// 	wp_die();
-// }
-
-
-
-
-
-
-
-add_action( 'wp_ajax_updateuser', 'st_handle_updateuser' );
-add_action( 'wp_ajax_nopriv_updateuser', 'st_handle_updateuser' );
-    
-function st_handle_updateuser(){
-    exit('sdfdsdfs');
-    if( $_POST['action'] == 'updateuser_action' ) {
-         die(1);
-    }    
-
+            }
+        }  
+    }
 }
 
 
@@ -1005,4 +1071,63 @@ function st_handle_updateuser(){
 
 // echo "END";
 // exit;
+// add_action( 'wp_ajax_nopriv_handle_updateuser', 'handle_updateuser' );
+// add_action( 'wp_ajax_handle_updateuser', 'handle_updateuser' );
+// // add_action( 'wp_ajax_nopriv_updateuser', 'st_handle_updateuser' );
+    
+// function handle_updateuser(){
+//     exit('sdfdsdfs');
+//     if( $_POST['action'] == 'updateuser_action' ) {
+//          die(1);
+//     }    
+
+// }
+
+
+//מושך את כל הרוכשים של מינוי שנתי ומעדכן להם את הסטטוס
+function user_status_update(){
+    global $wpdb;
+    //מושך את כל המשתמשים שרכשו מוצר
+    $customer = $wpdb->get_col("
+    SELECT DISTINCT pm.meta_value FROM wp_posts AS p
+    INNER JOIN wp_postmeta AS pm ON p.ID = pm.post_id
+    INNER JOIN wp_woocommerce_order_items AS i ON p.ID = i.order_id
+    INNER JOIN wp_woocommerce_order_itemmeta AS im ON i.order_item_id = im.order_item_id
+    WHERE p.post_status IN ( 'wc-processing','wc-completed' )
+    AND pm.meta_key IN ( '_customer_user' )
+    AND im.meta_key IN ( '_product_id', '_variation_id' )
+    AND im.meta_value = 3930
+    ");
+
+    //מושך את התאריך שבו המשתמשים רכשו את המוצר
+    // $customer = $wpdb->get_results("
+    // SELECT DISTINCT pm.meta_value as ID ,p.post_date_gmt FROM wp_posts AS p
+    // INNER JOIN wp_postmeta AS pm ON p.ID = pm.post_id
+    // INNER JOIN wp_woocommerce_order_items AS i ON p.ID = i.order_id
+    // INNER JOIN wp_woocommerce_order_itemmeta AS im ON i.order_item_id = im.order_item_id
+    // WHERE p.post_status IN ( 'wc-processing','wc-completed' )
+    // AND pm.meta_key IN ( '_customer_user' )
+    // AND im.meta_key IN ( '_product_id', '_variation_id' )
+    // AND im.meta_value = 3930
+    // ");
+
+
+
+    foreach($customer as $user_id){
+
+        $u = new WP_User( $user_id );
+        $user_role = $u->get_role_caps();
+        // Kint::dump($user_role['administrator']);
+        if($user_role['administrator'] == true){
+            continue;
+        }
+        $u->set_role( 'new_monthly_subscriptionnot' ); 
+        
+        // $update_date=update_field('member_purchase_date', $user_id->post_date_gmt, 'user_'.$user_id->ID);
+        // $update_date=update_field('member_expiry_date', '', 'user_'.$user_id->ID);
+
+    }
+    exit('ssss');
+}
+
 

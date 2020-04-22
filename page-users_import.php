@@ -265,7 +265,8 @@ function updateUsermeta($user_id,$user,$role){
     }
 
     if(!empty($user['project_id'])){
-        update_field( 'field_5d4bf4ee5e5d0', $user['project_id'], 'user_'.$user_id );//district  
+        //update_field( 'field_5d4bf4ee5e5d0', $user['project_id'], 'user_'.$user_id );//district  
+        update_field( 'field_5d4bf4ee5e5d0', 'מחוז מישור החוף הצפוני', 'user_'.$user_id );//district  
     }
 
     if(!empty($user['status'])){

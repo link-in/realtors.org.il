@@ -26,7 +26,6 @@ if ( empty( $layout_content ) || ! in_array( $layout_content, array( 'wide', 'bo
 	<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
-<h1>localhost</h1>
 <!-- <h1 style="
     background: red;
     text-align: center;
